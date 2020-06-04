@@ -66,21 +66,15 @@ See `test/scripts/Main.java`
 | <type>.pool_size    | Integer   | -                                     | `8`              | The pool size for the driver     |
 | <type>.init_module  | String    | -                                     | main             | The module name for initial call |
 
+## SDK
 
-## Integration Guides
-
-- Python: todo...
-- Java: todo...
+See `sdk/README.md`
 
 ## Beachmark
 
-- TODOs
+TODOs
 
 ## Known Issues or TODOs
-
-- Provide a High level APIs
-    * High level SDK for all funcs
-    * Packaging Python/Java sources code for developing in IDE
 
 - Configurable Log System.
     * The Java driver can not redirect the `stderr` stream to erlang vm on Windows platform
