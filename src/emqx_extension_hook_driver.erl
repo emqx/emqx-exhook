@@ -115,7 +115,7 @@ do_init(Name, InitM) ->
             NHookSpec = resovle_hook_spec(HookSpec),
             %% Reigster metrics
             Prefix = "exhook." ++ atom_to_list(Name) ++ ".",
-            metrics_new(Prefix, NHookSpec),
+            ensure_metrics(Prefix, NHookSpec),
             {ok, #driver{type = Type,
                          name = Name,
                          init = InitM,
@@ -156,9 +156,9 @@ is_message_hook(NameAtom) ->
                            message_acked,
                            message_dropped]).
 
-metrics_new(Prefix, HookSpec) ->
+ensure_metrics(Prefix, HookSpec) ->
     Keys = [ list_to_atom(Prefix ++ atom_to_list(K)) || K <- maps:keys(HookSpec)],
-    lists:foreach(fun emqx_metrics:new/1, Keys).
+    lists:foreach(fun emqx_metrics:ensure/1, Keys).
 
 incfun(Prefix) ->
     fun(Name) ->
