@@ -145,7 +145,7 @@ resovle_hook_spec(HookSpec) ->
                 false ->
                     Acc#{NameAtom => [{Atom(Module), Atom(Func), maps:from_list(Spec)} | maps:get(NameAtom, Acc, [])]};
                 _ ->
-                    ?LOG(warning, "Unsupprorted hook type ~s, module: ~s, func: ~s", [NameAtom, Module, Func]),
+                    ?LOG(warning, "Unsupported hook type ~s, module: ~s, func: ~s", [NameAtom, Module, Func]),
                     Acc
             end
     end, #{}, HookSpec1).
