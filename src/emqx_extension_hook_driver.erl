@@ -89,7 +89,7 @@
 %% Load/Unload APIs
 %%--------------------------------------------------------------------
 
--spec load(atom(), list()) -> ok | {error, term()} .
+-spec load(atom(), list()) -> {ok, driver()} | {error, term()} .
 load(Name, Opts0) ->
     case lists:keytake(init_module, 1, Opts0) of
         false -> {error, not_found_initial_module};
@@ -141,20 +141,8 @@ resovle_hook_spec(HookSpec) ->
     lists:foldr(
       fun({Name, Module, Func, Spec}, Acc) ->
             NameAtom = Atom(Name),
-            case is_message_hook(NameAtom) of
-                false ->
-                    Acc#{NameAtom => [{Atom(Module), Atom(Func), maps:from_list(Spec)} | maps:get(NameAtom, Acc, [])]};
-                _ ->
-                    ?LOG(warning, "Unsupprorted hook type ~s, module: ~s, func: ~s", [NameAtom, Module, Func]),
-                    Acc
-            end
+            Acc#{NameAtom => [{Atom(Module), Atom(Func), maps:from_list(Spec)} | maps:get(NameAtom, Acc, [])]}
     end, #{}, HookSpec1).
-
-is_message_hook(NameAtom) ->
-    lists:member(NameAtom,[message_publish,
-                           message_delivered,
-                           message_acked,
-                           message_dropped]).
 
 ensure_metrics(Prefix, HookSpec) ->
     Keys = [ list_to_atom(Prefix ++ atom_to_list(K)) || K <- maps:keys(HookSpec)],
@@ -283,13 +271,13 @@ call(Mod, Fun, Args, #driver{name = Name, type = Type, state = State}) ->
         do_call(Type, C, Mod, Fun, Args ++ [State])
     end).
 
-raw_call(Type, Name, Mod, Fun, Args) ->
+raw_call(Type, Name, Mod, Fun, Args) when is_list(Args) ->
      with_pool(Name, fun(C) ->
         do_call(Type, C, Mod, Fun, Args)
     end).
 
 do_call(Type, C, M, F, A) ->
-    case catch apply(Type, call, [C, M, F, convert_to_low_level(A)]) of
+    case catch apply(Type, call, [C, M, F, A]) of
         ok -> ok;
         undefined -> ok;
         {_Ok = 0, Return} -> {ok, Return};
@@ -315,8 +303,3 @@ type(python3) -> python;
 type(python2) -> python;
 type(Name) -> Name.
 
--compile({inline, [convert_to_low_level/1]}).
-convert_to_low_level(Args) when is_map(Args) ->
-    maps:to_list(Args);
-convert_to_low_level(Args) when is_list(Args) ->
-    Args.
