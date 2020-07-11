@@ -38,7 +38,7 @@ start(_StartType, _StartArgs) ->
     load_all_drivers(),
 
     %% Register all hooks
-    emqx_extension_hook_handler:load(),
+    load_exhooks(),
 
     %% Register CLI
     emqx_ctl:register_command(exhook, {emqx_extension_hook_cli, cli}, []),
@@ -46,7 +46,7 @@ start(_StartType, _StartArgs) ->
 
 prep_stop(State) ->
     emqx_ctl:unregister_command(exhook),
-    emqx_extension_hook_handler:unload(),
+    unload_exhooks(),
     unload_all_drivers(),
     State.
 
@@ -68,3 +68,41 @@ load_all_drivers([{Name, Opts}|Drivers]) ->
 
 unload_all_drivers() ->
     emqx_extension_hook:disable_all().
+
+%%--------------------------------------------------------------------
+%% Exhooks
+
+load_exhooks() ->
+    [emqx:hook(Name, {M, F, A}) || {Name, {M, F, A}} <- search_exhooks()].
+
+unload_exhooks() ->
+    [emqx:unhook(Name, {M, F}) || {Name, {M, F, _A}} <- search_exhooks()].
+
+search_exhooks() ->
+    search_exhooks(ignore_lib_apps(application:loaded_applications())).
+search_exhooks(Apps) ->
+    lists:flatten([ExHooks || App <- Apps, {_App, _Mod, ExHooks} <- find_attrs(App, exhooks)]).
+
+ignore_lib_apps(Apps) ->
+    LibApps = [kernel, stdlib, sasl, appmon, eldap, erts,
+               syntax_tools, ssl, crypto, mnesia, os_mon,
+               inets, goldrush, gproc, runtime_tools,
+               snmp, otp_mibs, public_key, asn1, ssh, hipe,
+               common_test, observer, webtool, xmerl, tools,
+               test_server, compiler, debugger, eunit, et,
+               wx],
+    [AppName || {AppName, _, _} <- Apps, not lists:member(AppName, LibApps)].
+
+find_attrs(App, Def) ->
+    [{App, Mod, Attr} || {ok, Modules} <- [application:get_key(App, modules)],
+                         Mod <- Modules,
+                         {Name, Attrs} <- module_attributes(Mod), Name =:= Def,
+                         Attr <- Attrs].
+
+module_attributes(Module) ->
+    try Module:module_info(attributes)
+    catch
+        error:undef -> [];
+        error:Reason -> error(Reason)
+    end.
+

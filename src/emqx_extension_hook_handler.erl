@@ -22,10 +22,6 @@
 
 -logger_header("[ExHook]").
 
--export([ load/0
-        , unload/0
-        ]).
-
 -export([ on_client_connect/2
         , on_client_connack/3
         , on_client_connected/2
@@ -46,54 +42,35 @@
         , on_session_terminated/3
         ]).
 
+%% Utils
+-export([ message/1
+        , validator/1
+        , assign_to_message/2
+        , clientinfo/1
+        , stringfy/1
+        ]).
+
 -import(emqx_extension_hook,
         [ cast/2
         , call_fold/4
         ]).
 
--compile({nowarn_unused_function,
-         [ message/1
-         , hexstr/1
-         , assign_to_message/2
-         ]}).
-
-%%--------------------------------------------------------------------
-%% Load/Unload
-%%--------------------------------------------------------------------
-
-load() ->
-    emqx:hook('client.connect',      {?MODULE, on_client_connect,       []}),
-    emqx:hook('client.connack',      {?MODULE, on_client_connack,       []}),
-    emqx:hook('client.connected',    {?MODULE, on_client_connected,     []}),
-    emqx:hook('client.disconnected', {?MODULE, on_client_disconnected,  []}),
-    emqx:hook('client.authenticate', {?MODULE, on_client_authenticate,  []}),
-    emqx:hook('client.check_acl',    {?MODULE, on_client_check_acl,     []}),
-    emqx:hook('client.subscribe',    {?MODULE, on_client_subscribe,     []}),
-    emqx:hook('client.unsubscribe',  {?MODULE, on_client_unsubscribe,   []}),
-    emqx:hook('session.created',     {?MODULE, on_session_created,      []}),
-    emqx:hook('session.subscribed',  {?MODULE, on_session_subscribed,   []}),
-    emqx:hook('session.unsubscribed',{?MODULE, on_session_unsubscribed, []}),
-    emqx:hook('session.resumed',     {?MODULE, on_session_resumed,      []}),
-    emqx:hook('session.discarded',   {?MODULE, on_session_discarded,    []}),
-    emqx:hook('session.takeovered',  {?MODULE, on_session_takeovered,   []}),
-    emqx:hook('session.terminated',  {?MODULE, on_session_terminated,   []}).
-
-unload() ->
-    emqx:unhook('client.connect',      {?MODULE, on_client_connect}),
-    emqx:unhook('client.connack',      {?MODULE, on_client_connack}),
-    emqx:unhook('client.connected',    {?MODULE, on_client_connected}),
-    emqx:unhook('client.disconnected', {?MODULE, on_client_disconnected}),
-    emqx:unhook('client.authenticate', {?MODULE, on_client_authenticate}),
-    emqx:unhook('client.check_acl',    {?MODULE, on_client_check_acl}),
-    emqx:unhook('client.subscribe',    {?MODULE, on_client_subscribe}),
-    emqx:unhook('client.unsubscribe',  {?MODULE, on_client_unsubscribe}),
-    emqx:unhook('session.created',     {?MODULE, on_session_created}),
-    emqx:unhook('session.subscribed',  {?MODULE, on_session_subscribed}),
-    emqx:unhook('session.unsubscribed',{?MODULE, on_session_unsubscribed}),
-    emqx:unhook('session.resumed',     {?MODULE, on_session_resumed}),
-    emqx:unhook('session.discarded',   {?MODULE, on_session_discarded}),
-    emqx:unhook('session.takeovered',  {?MODULE, on_session_takeovered}),
-    emqx:unhook('session.terminated',  {?MODULE, on_session_terminated}).
+-exhooks([ {'client.connect',      {?MODULE, on_client_connect,       []}}
+         , {'client.connack',      {?MODULE, on_client_connack,       []}}
+         , {'client.connected',    {?MODULE, on_client_connected,     []}}
+         , {'client.disconnected', {?MODULE, on_client_disconnected,  []}}
+         , {'client.authenticate', {?MODULE, on_client_authenticate,  []}}
+         , {'client.check_acl',    {?MODULE, on_client_check_acl,     []}}
+         , {'client.subscribe',    {?MODULE, on_client_subscribe,     []}}
+         , {'client.unsubscribe',  {?MODULE, on_client_unsubscribe,   []}}
+         , {'session.created',     {?MODULE, on_session_created,      []}}
+         , {'session.subscribed',  {?MODULE, on_session_subscribed,   []}}
+         , {'session.unsubscribed',{?MODULE, on_session_unsubscribed, []}}
+         , {'session.resumed',     {?MODULE, on_session_resumed,      []}}
+         , {'session.discarded',   {?MODULE, on_session_discarded,    []}}
+         , {'session.takeovered',  {?MODULE, on_session_takeovered,   []}}
+         , {'session.terminated',  {?MODULE, on_session_terminated,   []}}
+         ]).
 
 %%--------------------------------------------------------------------
 %% Clients
