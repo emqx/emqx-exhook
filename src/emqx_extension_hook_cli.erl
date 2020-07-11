@@ -56,9 +56,7 @@ cli(_) ->
 print(ok) ->
     emqx_ctl:print("ok~n");
 print({error, Reason}) ->
-    emqx_ctl:print("~p~n", [Reason]);
-print(Term) ->
-    emqx_ctl:print("~p~n", [Term]).
+    emqx_ctl:print("~p~n", [Reason]).
 
 %%--------------------------------------------------------------------
 %% Internal funcs
