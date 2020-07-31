@@ -1,6 +1,6 @@
 import java.io.*;
 import java.util.*;
-import erlport.terms.*;
+import com.erlport.erlang.term.*;
 
 class State implements Serializable {
 

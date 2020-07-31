@@ -50,7 +50,7 @@
           state
        }).
 
--type driver_name() :: python2 | python3 | java | webhook | lua | atom().
+-type driver_name() :: python | python3 | java | webhook | lua | atom().
 -type driver_type() :: python | webhok | java | atom().
 -type driver() :: #driver{}.
 
@@ -164,7 +164,7 @@ format(#driver{name = Name, init = InitM, hookspec = Hooks}) ->
 connect(Opts0) ->
     case lists:keytake(name, 1, lists:keydelete(ecpool_worker_id, 1, Opts0)) of
         {_,{_, Name}, Opts}
-          when Name =:= python2;
+          when Name =:= python;
                Name =:= python3 ->
             NOpts = resovle_search_path(python, Opts),
             python:start_link([{python, atom_to_list(Name)} | NOpts]);
@@ -300,6 +300,6 @@ with_pool(Name, Fun) ->
     ecpool:with_client(Name, Fun).
 
 type(python3) -> python;
-type(python2) -> python;
+type(python) -> python;
 type(Name) -> Name.
 
