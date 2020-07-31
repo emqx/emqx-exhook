@@ -38,8 +38,8 @@ We temporarily no plans to support other languages. Plaease open a issue if you 
 
 ***Requirements:***
 
-- It requires the emqx hosted machine has Python2/Python3 Runtimes
-- An executable commands in your shell, i,g: `python2` or `python3`
+- It requires the emqx hosted machine has Python3 Runtimes (not support python2)
+- An executable commands in your shell, i,g: `python` or `python3`
 
 ***Examples:***
 
@@ -60,7 +60,7 @@ See `test/scripts/Main.java`
 
 | Name                | Data Type | Options                               | Default          | Description                      |
 | ------------------- | --------- | ------------------------------------- | ---------------- | -------------------------------- |
-| drivers             | Enum      | `python2`<br /> `python3`<br />`java` | `python3`        | Drivers type                     |
+| drivers             | Enum      | `python3`<br />`java`                 | `python3`        | Drivers type                     |
 | <type>.path         | String    | -                                     | `data/extension` | The codes/library search path    |
 | <type>.call_timeout | Duration  | -                                     | `5s`             | Function call timeout            |
 | <type>.pool_size    | Integer   | -                                     | `8`              | The pool size for the driver     |

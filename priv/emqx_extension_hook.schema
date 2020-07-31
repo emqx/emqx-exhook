@@ -34,7 +34,7 @@
               {call_timeout, Duration(cuttlefish:conf_get(Prefix ++ ".call_timeout", Conf, "5s"))}]
            end,
 
-    Options = fun(python2) -> Filter(Python("exhook.drivers.python2"));
+    Options = fun(python) -> Filter(Python("exhook.drivers.python"));
                  (python3) -> Filter(Python("exhook.drivers.python3"));
                  (java) -> Filter(Java("exhook.drivers.java"));
                  (_) -> error(not_supported_drivers_type)
