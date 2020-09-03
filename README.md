@@ -39,7 +39,7 @@ We temporarily no plans to support other languages. Plaease open a issue if you 
 ***Requirements:***
 
 - It requires the emqx hosted machine has Python3 Runtimes (not support python2)
-- An executable commands in your shell, i,g: `python` or `python3`
+- The `python3` executable commands in your shell
 
 ***Examples:***
 
