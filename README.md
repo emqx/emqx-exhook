@@ -4,32 +4,23 @@ The `emqx_extension_hook` extremly enhance the extensibility for EMQ X. It allow
 
 ## Feature
 
-- [ ] Support variaty of programming language or web services.
+- [x] Support `python` and `java`.
 - [x] Support all hooks of emqx.
 - [x] Allows you to use the return value to extend emqx behavior.
-
-Notes: The current version only support `python` and `java`.
 
 We temporarily no plans to support other languages. Plaease open a issue if you have to use other programming languages.
 
 ## Architecture
 
 ```
-                            EMQ X
-                            +============================+
-                            |        Extension           |
- +----------+    CONNECT    | Hooks +----------------+   |
- |  Client  | <===========> - - - ->|    Drivers     |   |
- +----------+    PUB/SUB    |       +----------------+   |
-                            |               |            |
-                            +===============|============+
-                                            |
-                                            | Callbacks
-             Third-party Runtimes           |
-             +=======================+      |
-             |  Python Script/ Java  |<-----+
-             |  Classes/ Others      |
-             +=======================+
+ EMQ X                                      Third-party Runtimes
++========================+                 +====================+
+|    Extension           |                 |                    |
+|   +----------------+   |     Hooks       |  Python scripts /  |
+|   |    Drivers     | ------------------> |  Java Classes   /  |
+|   +----------------+   |     (pipe)      |  Others ...        |
+|                        |                 |                    |
++========================+                 +====================+
 ```
 
 ## Drivers
@@ -70,14 +61,12 @@ See `test/scripts/Main.java`
 
 See `sdk/README.md`
 
-## Beachmark
-
-TODOs
-
 ## Known Issues or TODOs
 
-- Configurable Log System.
-    * The Java driver can not redirect the `stderr` stream to erlang vm on Windows platform
+**Configurable Log System**
+
+- use stderr to print logs to the emqx console instead of stdout. An alternative is to print the logs to a file.
+- The Java driver can not redirect the `stderr` stream to erlang vm on Windows platform.
 
 ## Reference
 

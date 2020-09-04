@@ -13,7 +13,7 @@
   - webhook
   - Java
   - Lua
-  - c，go，.... ?
+  - c，go，.....
 - 热操作
   - 允许在插件运行过程中，添加和移除 `Driver`。
 
@@ -26,21 +26,14 @@
 架构如下：
 
 ```
-                            EMQ X
-                            +============================+
-                            |        Extension           |
- +----------+    CONNECT    | Hooks +----------------+   |
- |  Client  | <===========> - - - ->|    Drivers     |   |
- +----------+    PUB/SUB    |       +----------------+   |
-                            |               |            |
-                            +===============|============+
-                                            |
-                                            | Callbacks
-             Third-party Runtimes           |
-             +=======================+      |
-             |  Python Script/ Java  |<-----+
-             |  Classes/ Others      |
-             +=======================+
+ EMQ X                                      Third-party Runtimes
++========================+                 +====================+
+|    Extension           |                 |                    |
+|   +----------------+   |     Hooks       |  Python scripts /  |
+|   |    Drivers     | ------------------> |  Java Classes   /  |
+|   +----------------+   |     (pipe)      |  Others ...        |
+|                        |                 |                    |
++========================+                 +====================+
 ```
 
 ### 配置文件示例
@@ -51,7 +44,7 @@
 ## Driver type
 ##
 ## Exmaples:
-##   - python2									 --- 仅配置 python3
+##   - python3                   --- 仅配置 python3
 ##   - python3, java, webhook    --- 配置多个 Driver
 exhook.dirvers = python3, java, webhook
 
@@ -260,15 +253,3 @@ ok
 python3.client_connect     123
 webhook.check_acl          20
 ```
-
-
-
-**API** 示例：
-
-TODO：
-
-### TODOS
-
-- 打包
-- 模拟调试
-- 透明数据类型
