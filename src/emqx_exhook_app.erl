@@ -14,11 +14,11 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emqx_extension_hook_app).
+-module(emqx_exhook_app).
 
 -behaviour(application).
 
--include("emqx_extension_hook.hrl").
+-include("emqx_exhook.hrl").
 
 -emqx_plugin(?MODULE).
 
@@ -32,22 +32,22 @@
 %%--------------------------------------------------------------------
 
 start(_StartType, _StartArgs) ->
-    {ok, Sup} = emqx_extension_hook_sup:start_link(),
+    {ok, Sup} = emqx_exhook_sup:start_link(),
 
     %% Load all dirvers
-    load_all_drivers(),
+    load_all_servers(),
 
     %% Register all hooks
     load_exhooks(),
 
     %% Register CLI
-    emqx_ctl:register_command(exhook, {emqx_extension_hook_cli, cli}, []),
+    emqx_ctl:register_command(exhook, {emqx_exhook_cli, cli}, []),
     {ok, Sup}.
 
 prep_stop(State) ->
     emqx_ctl:unregister_command(exhook),
     unload_exhooks(),
-    unload_all_drivers(),
+    unload_all_servers(),
     State.
 
 stop(_State) ->
@@ -57,17 +57,17 @@ stop(_State) ->
 %% Internal funcs
 %%--------------------------------------------------------------------
 
-load_all_drivers() ->
-    load_all_drivers(application:get_env(?APP, drivers, [])).
+load_all_servers() ->
+    load_all_servers(application:get_env(?APP, servers, [])).
 
-load_all_drivers([]) ->
+load_all_servers([]) ->
     ok;
-load_all_drivers([{Name, Opts}|Drivers]) ->
-    ok = emqx_extension_hook:enable(Name, Opts),
-    load_all_drivers(Drivers).
+load_all_servers([{Name, Opts}|Drivers]) ->
+    _ = emqx_exhook:enable(Name, Opts),
+    load_all_servers(Drivers).
 
-unload_all_drivers() ->
-    emqx_extension_hook:disable_all().
+unload_all_servers() ->
+    emqx_exhook:disable_all().
 
 %%--------------------------------------------------------------------
 %% Exhooks
