@@ -11,8 +11,11 @@ compile:
 
 clean: distclean
 
+proper:
+	$(REBAR) proper -d test/props
+
 ct: compile
-	$(REBAR) as test ct -v --name emqx_extension_hook_ct@127.0.0.1
+	$(REBAR) as test ct -v --name emqx_exhook_ct@127.0.0.1
 
 eunit: compile
 	$(REBAR) as test eunit
@@ -33,6 +36,6 @@ $(CUTTLEFISH_SCRIPT):
 	@${REBAR} get-deps
 	@if [ ! -f cuttlefish ]; then make -C _build/default/lib/cuttlefish; fi
 
-app.config: $(CUTTLEFISH_SCRIPT) etc/emqx_extension_hook.conf
-	$(verbose) $(CUTTLEFISH_SCRIPT) -l info -e etc/ -c etc/emqx_extension_hook.conf -i priv/emqx_extension_hook.schema -d data
+app.config: $(CUTTLEFISH_SCRIPT) etc/emqx_exhook.conf
+	$(verbose) $(CUTTLEFISH_SCRIPT) -l info -e etc/ -c etc/emqx_exhook.conf -i priv/emqx_exhook.schema -d data
 
