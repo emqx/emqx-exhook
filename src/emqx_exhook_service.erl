@@ -89,7 +89,7 @@ load(Name, Opts0) ->
             case do_init(Name) of
                 {ok, HookSpecs} ->
                     %% Reigster metrics
-                    Prefix = "exhook." ++ atom_to_list(Name) ++ ".",
+                    Prefix = lists:flatten(io_lib:format("exhook.~s.", [Name])),
                     ensure_metrics(Prefix, HookSpecs),
                     {ok, #service{name = Name,
                                   options = Opts0,
