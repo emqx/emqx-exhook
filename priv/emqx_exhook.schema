@@ -25,7 +25,8 @@
                           {ok, {https, _, Host, Port, _, _}} ->
                               [{scheme, https}, {host, Host}, {port, Port},
                                {ssl_options,
-                                 Filter([{certfile, cuttlefish:conf_get(Prefix ++ ".ssl.certfile", Conf)},
+                                 Filter([{ssl, true},
+                                         {certfile, cuttlefish:conf_get(Prefix ++ ".ssl.certfile", Conf)},
                                          {keyfile, cuttlefish:conf_get(Prefix ++ ".ssl.keyfile", Conf)},
                                          {cacertfile, cuttlefish:conf_get(Prefix ++ ".ssl.cacertfile", Conf)}
                                         ])}];
