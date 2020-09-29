@@ -40,7 +40,7 @@
 list() ->
     [service(Name) || Name <- running()].
 
--spec enable(atom(), list()) -> ok | {error, term()}.
+-spec enable(atom()|string(), list()) -> ok | {error, term()}.
 enable(Name, Opts) ->
     case lists:member(Name, running()) of
         true ->
@@ -55,7 +55,7 @@ enable(Name, Opts) ->
             end
     end.
 
--spec disable(atom()) -> ok | {error, term()}.
+-spec disable(atom()|string()) -> ok | {error, term()}.
 disable(Name) ->
     case service(Name) of
         undefined -> {error, not_running};
@@ -64,7 +64,7 @@ disable(Name) ->
             unsave(Name)
     end.
 
--spec disable_all() -> [atom()].
+-spec disable_all() -> [term()].
 disable_all() ->
     [begin disable(Name), Name end || Name <- running()].
 
