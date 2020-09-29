@@ -45,7 +45,7 @@ init([]) ->
 %%--------------------------------------------------------------------
 
 -spec start_service_channel(
-        atom(),
+        atom() | string(),
         [grpcbox_channel:endpoint()],
         grpcbox_channel:options()) -> {ok, pid()} | {error, term()}.
 start_service_channel(Name, Endpoints, Options0) ->
@@ -62,7 +62,7 @@ stop_service_channel(Pid) ->
     ok = supervisor:delete_child(?MODULE, Pid).
 
 -spec start_service_channel_inplace(
-        atom(),
+        atom() | string(),
         [grpcbox_channel:endpoint()],
         grpcbox_channel:options()) -> {ok, pid()} | {error, term()}.
 start_service_channel_inplace(Name, Endpoints, Options0) ->
@@ -71,5 +71,4 @@ start_service_channel_inplace(Name, Endpoints, Options0) ->
 
 -spec stop_service_channel_inplace(pid()) -> ok.
 stop_service_channel_inplace(Pid) ->
-    ok = supervisor:terminate_child(?MODULE, Pid),
-    ok = supervisor:delete_child(?MODULE, Pid).
+    ok = supervisor:terminate_child(grpcbox_channel_sup, Pid).
