@@ -27,6 +27,13 @@
         , prep_stop/1
         ]).
 
+%% Internal export
+-export([ load_server/2
+        , unload_server/1
+        , load_exhooks/0
+        , unload_exhooks/0
+        ]).
+
 %%--------------------------------------------------------------------
 %% Application callbacks
 %%--------------------------------------------------------------------
@@ -58,16 +65,18 @@ stop(_State) ->
 %%--------------------------------------------------------------------
 
 load_all_servers() ->
-    load_all_servers(application:get_env(?APP, servers, [])).
-
-load_all_servers([]) ->
-    ok;
-load_all_servers([{Name, Opts}|Drivers]) ->
-    _ = emqx_exhook:enable(Name, Opts),
-    load_all_servers(Drivers).
+    lists:foreach(fun({Name, Options}) ->
+        load_server(Name, Options)
+    end, application:get_env(?APP, servers, [])).
 
 unload_all_servers() ->
     emqx_exhook:disable_all().
+
+load_server(Name, Options) ->
+    emqx_exhook:enable(Name, Options).
+
+unload_server(Name) ->
+    emqx_exhook:disable(Name).
 
 %%--------------------------------------------------------------------
 %% Exhooks

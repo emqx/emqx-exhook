@@ -38,6 +38,10 @@
 -record(service, {
           %% Service name (equal to grpcbox client channel name)
           name :: service_name(),
+          %% The service started options
+          options :: list(),
+          %% gRPC channel pid
+          channel :: pid(),
           %% Registered hook names and options
           hookspec :: #{hookpoint() => map()},
           %% Metric fun
@@ -76,14 +80,20 @@
 -spec load(atom(), list()) -> {ok, service()} | {error, term()} .
 load(Name, Opts0) ->
     {Endpoints, Options} = channel_opts(Opts0),
-    case emqx_exhook_sup:start_service_channel(Name, Endpoints, Options) of
-        {ok, _Pid} ->
+    StartFun = case proplists:get_bool(inplace, Opts0) of
+                   true -> start_service_channel_inplace;
+                   _ -> start_service_channel
+               end,
+    case emqx_exhook_sup:StartFun(Name, Endpoints, Options) of
+        {ok, ChannPid} ->
             case do_init(Name) of
                 {ok, HookSpecs} ->
                     %% Reigster metrics
                     Prefix = "exhook." ++ atom_to_list(Name) ++ ".",
                     ensure_metrics(Prefix, HookSpecs),
                     {ok, #service{name = Name,
+                                  options = Opts0,
+                                  channel = ChannPid,
                                   hookspec = HookSpecs,
                                   incfun = incfun(Prefix) }};
                 {error, _} = E -> E
@@ -104,9 +114,13 @@ channel_opts(Opts) ->
     {[{Scheme, Host, Port, SslOpts}], maps:from_list(Options)}.
 
 -spec unload(service()) -> ok.
-unload(#service{name = Name}) ->
+unload(#service{name = Name, channel = ChannPid, options = Options}) ->
     _ = do_deinit(Name),
-    emqx_exhook_sup:stop_service_channel(Name).
+    StopFun = case proplists:get_bool(inplace, Options) of
+                  true -> stop_service_channel_inplace;
+                  _ -> stop_service_channel
+              end,
+    emqx_exhook_sup:StopFun(ChannPid).
 
 do_deinit(Name) ->
     _ = do_call(Name, 'on_provider_unloaded', []),
