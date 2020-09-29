@@ -259,7 +259,7 @@ hexstr(B) ->
 %% see exhook.proto
 merge_responsed_bool(Req, #{type := 'IGNORE'}) ->
     {ok, Req};
-merge_responsed_bool(Req, Resp = #{type := Type, value := {bool_result, NewBool}})
+merge_responsed_bool(Req, #{type := Type, value := {bool_result, NewBool}})
   when is_boolean(NewBool) ->
     NReq = Req#{result => NewBool},
     case Type of

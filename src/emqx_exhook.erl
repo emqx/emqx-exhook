@@ -132,4 +132,3 @@ service(Name) ->
         {'EXIT', {badarg,_}} -> undefined;
         Service -> Service
     end.
-
