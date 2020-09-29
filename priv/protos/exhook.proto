@@ -201,11 +201,6 @@ message MessagePublishRequest {
   Message message = 1;
 }
 
-message MessageResponse {
-
-  Message message = 1;
-}
-
 message MessageDeliveredRequest {
 
   ClientInfo clientinfo = 1;
@@ -215,7 +210,9 @@ message MessageDeliveredRequest {
 
 message MessageDroppedRequest {
 
-    Message message = 1;
+  Message message = 1;
+
+  string reason = 2;
 }
 
 message MessageAckedRequest {
