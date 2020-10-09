@@ -67,47 +67,47 @@ prop_client_connack() ->
     ?ALL({ConnInfo, Rc, AckProps},
          {conninfo(), connack_return_code(), ack_properties()},
         begin
-           _OutAckProps = emqx_hooks:run_fold('client.connack', [ConnInfo, Rc], AckProps),
-           {'on_client_connack', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{props => properties(AckProps),
-                 result_code => atom_to_binary(Rc, utf8),
-                 conninfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ConnInfo),
-                     username => maybe(maps:get(username, ConnInfo, <<>>)),
-                     peerhost => peerhost(ConnInfo),
-                     sockport => sockport(ConnInfo),
-                     proto_name => maps:get(proto_name, ConnInfo),
-                     proto_ver => stringfy(maps:get(proto_ver, ConnInfo)),
-                     keepalive => maps:get(keepalive, ConnInfo)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
+            _OutAckProps = emqx_hooks:run_fold('client.connack', [ConnInfo, Rc], AckProps),
+            {'on_client_connack', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{props => properties(AckProps),
+                  result_code => atom_to_binary(Rc, utf8),
+                  conninfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ConnInfo),
+                      username => maybe(maps:get(username, ConnInfo, <<>>)),
+                      peerhost => peerhost(ConnInfo),
+                      sockport => sockport(ConnInfo),
+                      proto_name => maps:get(proto_name, ConnInfo),
+                      proto_ver => stringfy(maps:get(proto_ver, ConnInfo)),
+                      keepalive => maps:get(keepalive, ConnInfo)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
             true
         end).
 
 prop_client_authenticate() ->
     ?ALL({ClientInfo, AuthResult}, {clientinfo(), authresult()},
         begin
-           _OutAuthResult = emqx_hooks:run_fold('client.authenticate', [ClientInfo], AuthResult),
-           {'on_client_authenticate', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{result => authresult_to_bool(AuthResult),
-                 clientinfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ClientInfo),
-                     username => maybe(maps:get(username, ClientInfo, <<>>)),
-                     password => maybe(maps:get(password, ClientInfo, <<>>)),
-                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
-                     sockport => maps:get(sockport, ClientInfo),
-                     protocol => stringfy(maps:get(protocol, ClientInfo)),
-                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
-                     is_superuser => maps:get(is_superuser, ClientInfo, false),
-                     anonymous => maps:get(anonymous, ClientInfo, true)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
+            _OutAuthResult = emqx_hooks:run_fold('client.authenticate', [ClientInfo], AuthResult),
+            {'on_client_authenticate', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{result => authresult_to_bool(AuthResult),
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
             true
         end).
 
@@ -115,26 +115,26 @@ prop_client_check_acl() ->
     ?ALL({ClientInfo, PubSub, Topic, Result},
          {clientinfo(), oneof([publish, subscribe]), topic(), oneof([allow, deny])},
         begin
-           _OutResult = emqx_hooks:run_fold('client.check_acl', [ClientInfo, PubSub, Topic], Result),
-           {'on_client_check_acl', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{result => aclresult_to_bool(Result),
-                 type => pubsub_to_enum(PubSub),
-                 topic => Topic,
-                 clientinfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ClientInfo),
-                     username => maybe(maps:get(username, ClientInfo, <<>>)),
-                     password => maybe(maps:get(password, ClientInfo, <<>>)),
-                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
-                     sockport => maps:get(sockport, ClientInfo),
-                     protocol => stringfy(maps:get(protocol, ClientInfo)),
-                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
-                     is_superuser => maps:get(is_superuser, ClientInfo, false),
-                     anonymous => maps:get(anonymous, ClientInfo, true)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
+            _OutResult = emqx_hooks:run_fold('client.check_acl', [ClientInfo, PubSub, Topic], Result),
+            {'on_client_check_acl', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{result => aclresult_to_bool(Result),
+                  type => pubsub_to_enum(PubSub),
+                  topic => Topic,
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
             true
         end).
 
@@ -143,101 +143,101 @@ prop_client_connected() ->
     ?ALL({ClientInfo, ConnInfo},
          {clientinfo(), conninfo()},
         begin
-           ok = emqx_hooks:run('client.connected', [ClientInfo, ConnInfo]),
-           {'on_client_connected', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{clientinfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ClientInfo),
-                     username => maybe(maps:get(username, ClientInfo, <<>>)),
-                     password => maybe(maps:get(password, ClientInfo, <<>>)),
-                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
-                     sockport => maps:get(sockport, ClientInfo),
-                     protocol => stringfy(maps:get(protocol, ClientInfo)),
-                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
-                     is_superuser => maps:get(is_superuser, ClientInfo, false),
-                     anonymous => maps:get(anonymous, ClientInfo, true)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
-           true
+            ok = emqx_hooks:run('client.connected', [ClientInfo, ConnInfo]),
+            {'on_client_connected', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
         end).
 
 prop_client_disconnected() ->
     ?ALL({ClientInfo, Reason, ConnInfo},
          {clientinfo(), shutdown_reason(), conninfo()},
         begin
-           ok = emqx_hooks:run('client.disconnected', [ClientInfo, Reason, ConnInfo]),
-           {'on_client_disconnected', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{reason => stringfy(Reason),
-                 clientinfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ClientInfo),
-                     username => maybe(maps:get(username, ClientInfo, <<>>)),
-                     password => maybe(maps:get(password, ClientInfo, <<>>)),
-                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
-                     sockport => maps:get(sockport, ClientInfo),
-                     protocol => stringfy(maps:get(protocol, ClientInfo)),
-                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
-                     is_superuser => maps:get(is_superuser, ClientInfo, false),
-                     anonymous => maps:get(anonymous, ClientInfo, true)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
-           true
+            ok = emqx_hooks:run('client.disconnected', [ClientInfo, Reason, ConnInfo]),
+            {'on_client_disconnected', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{reason => stringfy(Reason),
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
         end).
 
 prop_client_subscribe() ->
     ?ALL({ClientInfo, SubProps, TopicTab},
          {clientinfo(), sub_properties(), topictab()},
         begin
-           _OutTopicTab = emqx_hooks:run_fold('client.subscribe', [ClientInfo, SubProps], TopicTab),
-           {'on_client_subscribe', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{props => properties(SubProps),
-                 topic_filters => topicfilters(TopicTab),
-                 clientinfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ClientInfo),
-                     username => maybe(maps:get(username, ClientInfo, <<>>)),
-                     password => maybe(maps:get(password, ClientInfo, <<>>)),
-                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
-                     sockport => maps:get(sockport, ClientInfo),
-                     protocol => stringfy(maps:get(protocol, ClientInfo)),
-                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
-                     is_superuser => maps:get(is_superuser, ClientInfo, false),
-                     anonymous => maps:get(anonymous, ClientInfo, true)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
-           true
+            _OutTopicTab = emqx_hooks:run_fold('client.subscribe', [ClientInfo, SubProps], TopicTab),
+            {'on_client_subscribe', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{props => properties(SubProps),
+                  topic_filters => topicfilters(TopicTab),
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
         end).
 
 prop_client_unsubscribe() ->
     ?ALL({ClientInfo, UnSubProps, TopicTab},
          {clientinfo(), unsub_properties(), topictab()},
         begin
-           _OutTopicTab = emqx_hooks:run_fold('client.unsubscribe', [ClientInfo, UnSubProps], TopicTab),
-           {'on_client_unsubscribe', Resp} = emqx_exhook_demo_svr:take(),
-           Expected =
-               #{props => properties(UnSubProps),
-                 topic_filters => topicfilters(TopicTab),
-                 clientinfo =>
-                   #{node => nodestr(),
-                     clientid => maps:get(clientid, ClientInfo),
-                     username => maybe(maps:get(username, ClientInfo, <<>>)),
-                     password => maybe(maps:get(password, ClientInfo, <<>>)),
-                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
-                     sockport => maps:get(sockport, ClientInfo),
-                     protocol => stringfy(maps:get(protocol, ClientInfo)),
-                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
-                     is_superuser => maps:get(is_superuser, ClientInfo, false),
-                     anonymous => maps:get(anonymous, ClientInfo, true)
-                    }
-                },
-           ?assertEqual(Expected, Resp),
-           true
+            _OutTopicTab = emqx_hooks:run_fold('client.unsubscribe', [ClientInfo, UnSubProps], TopicTab),
+            {'on_client_unsubscribe', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{props => properties(UnSubProps),
+                  topic_filters => topicfilters(TopicTab),
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
         end).
 
 prop_session_created() ->
@@ -486,6 +486,7 @@ pubsub_to_enum(subscribe) -> 'SUBSCRIBE'.
 %%--------------------------------------------------------------------
 %% Helper
 %%--------------------------------------------------------------------
+
 do_setup() ->
     _ = emqx_exhook_demo_svr:start(),
     emqx_ct_helpers:start_apps([emqx_exhook], fun set_special_cfgs/1),
