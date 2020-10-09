@@ -56,10 +56,10 @@ start_service_channel(Name, Endpoints, Options0) ->
 
     supervisor:start_child(?MODULE, Spec).
 
--spec stop_service_channel(pid()) -> ok.
-stop_service_channel(Pid) ->
-    ok = supervisor:terminate_child(?MODULE, Pid),
-    ok = supervisor:delete_child(?MODULE, Pid).
+-spec stop_service_channel(atom()) -> ok.
+stop_service_channel(Name) ->
+    ok = supervisor:terminate_child(?MODULE, Name),
+    ok = supervisor:delete_child(?MODULE, Name).
 
 -spec start_service_channel_inplace(
         atom() | string(),
