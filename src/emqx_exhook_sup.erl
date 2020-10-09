@@ -22,12 +22,12 @@
         , init/1
         ]).
 
--export([ start_service_channel/3
-        , stop_service_channel/1
+-export([ start_grpc_client_channel/3
+        , stop_grpc_client_channel/1
         ]).
 
--export([ start_service_channel_inplace/3
-        , stop_service_channel_inplace/1
+-export([ start_grpc_client_channel_inplace/3
+        , stop_grpc_client_channel_inplace/1
         ]).
 
 %%--------------------------------------------------------------------
@@ -44,11 +44,11 @@ init([]) ->
 %% APIs
 %%--------------------------------------------------------------------
 
--spec start_service_channel(
+-spec start_grpc_client_channel(
         atom() | string(),
         [grpcbox_channel:endpoint()],
         grpcbox_channel:options()) -> {ok, pid()} | {error, term()}.
-start_service_channel(Name, Endpoints, Options0) ->
+start_grpc_client_channel(Name, Endpoints, Options0) ->
     Options = Options0#{sync_start => true},
     Spec = #{id => Name,
              start => {grpcbox_channel, start_link, [Name, Endpoints, Options]},
@@ -56,19 +56,19 @@ start_service_channel(Name, Endpoints, Options0) ->
 
     supervisor:start_child(?MODULE, Spec).
 
--spec stop_service_channel(atom()) -> ok.
-stop_service_channel(Name) ->
+-spec stop_grpc_client_channel(atom()) -> ok.
+stop_grpc_client_channel(Name) ->
     ok = supervisor:terminate_child(?MODULE, Name),
     ok = supervisor:delete_child(?MODULE, Name).
 
--spec start_service_channel_inplace(
+-spec start_grpc_client_channel_inplace(
         atom() | string(),
         [grpcbox_channel:endpoint()],
         grpcbox_channel:options()) -> {ok, pid()} | {error, term()}.
-start_service_channel_inplace(Name, Endpoints, Options0) ->
+start_grpc_client_channel_inplace(Name, Endpoints, Options0) ->
     Options = Options0#{sync_start => true},
     grpcbox_channel_sup:start_child(Name, Endpoints, Options).
 
--spec stop_service_channel_inplace(pid()) -> ok.
-stop_service_channel_inplace(Pid) ->
+-spec stop_grpc_client_channel_inplace(pid()) -> ok.
+stop_grpc_client_channel_inplace(Pid) ->
     ok = supervisor:terminate_child(grpcbox_channel_sup, Pid).
