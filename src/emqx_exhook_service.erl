@@ -116,11 +116,11 @@ channel_opts(Opts) ->
 -spec unload(service()) -> ok.
 unload(#service{name = Name, channel = ChannPid, options = Options}) ->
     _ = do_deinit(Name),
-    StopFun = case proplists:get_bool(inplace, Options) of
-                  true -> stop_service_channel_inplace;
-                  _ -> stop_service_channel
-              end,
-    emqx_exhook_sup:StopFun(ChannPid).
+    {StopFun, Args} = case proplists:get_bool(inplace, Options) of
+                          true -> {stop_service_channel_inplace, [ChannPid]};
+                          _ -> {stop_service_channel, [Name]}
+                      end,
+    apply(emqx_exhook_sup, StopFun, Args).
 
 do_deinit(Name) ->
     _ = do_call(Name, 'on_provider_unloaded', []),

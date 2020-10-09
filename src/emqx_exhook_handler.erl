@@ -93,8 +93,6 @@ on_client_connected(ClientInfo, _ConnInfo) ->
     Req = #{clientinfo => clientinfo(ClientInfo)},
     cast('client.connected', Req).
 
-on_client_disconnected(ClientInfo, {shutdown, Reason}, ConnInfo) when is_atom(Reason) ->
-    on_client_disconnected(ClientInfo, Reason, ConnInfo);
 on_client_disconnected(ClientInfo, Reason, _ConnInfo) ->
     Req = #{clientinfo => clientinfo(ClientInfo),
             reason => stringfy(Reason)
@@ -244,7 +242,7 @@ ntoa({0,0,0,0,0,16#ffff,AB,CD}) ->
 ntoa(IP) ->
     list_to_binary(inet_parse:ntoa(IP)).
 
-maybe(undefined) -> <<"">>;
+maybe(undefined) -> <<>>;
 maybe(B) -> B.
 
 %% @private
@@ -254,8 +252,8 @@ stringfy(Term) when is_integer(Term) ->
     integer_to_binary(Term);
 stringfy(Term) when is_atom(Term) ->
     atom_to_binary(Term, utf8);
-stringfy(Term) when is_tuple(Term) ->
-    iolist_to_binary(io_lib:format("~p", [Term])).
+stringfy(Term) ->
+    unicode:characters_to_binary((io_lib:format("~0p", [Term]))).
 
 hexstr(B) ->
     iolist_to_binary([io_lib:format("~2.16.0B", [X]) || X <- binary_to_list(B)]).
