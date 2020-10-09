@@ -29,13 +29,12 @@
 all() -> emqx_ct:all(?MODULE).
 
 init_per_suite(Cfg) ->
-    {ok, Svr} = emqx_exhook_demo_svr:start(),
+    _ = emqx_exhook_demo_svr:start(),
     emqx_ct_helpers:start_apps([emqx_exhook], fun set_special_cfgs/1),
-    [{server, Svr}|Cfg].
+    Cfg.
 
 end_per_suite(Cfg) ->
-    Svr = proplists:get_value(server, Cfg),
-    emqx_exhook_demo_svr:stop(Svr),
+    emqx_exhook_demo_svr:stop(),
     emqx_ct_helpers:stop_apps([emqx_exhook]).
 
 set_special_cfgs(emqx) ->
@@ -51,6 +50,4 @@ set_special_cfgs(emqx_exhook) ->
 %%--------------------------------------------------------------------
 
 t_hooks(Cfg) ->
-    Svr = proplists:get_value(server, Cfg),
     ok.
-
