@@ -116,7 +116,7 @@ reply(Q1, Q2) ->
    | grpcbox_stream:grpc_error_response().
 on_provider_loaded(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{hooks => [
                      #{name => <<"client.connect">>},
                      #{name => <<"client.connack">>},
@@ -143,7 +143,7 @@ on_provider_loaded(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_provider_unloaded(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_client_connect(ctx:ctx(), emqx_exhook_pb:client_connect_request())
@@ -151,7 +151,7 @@ on_provider_unloaded(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_connect(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_client_connack(ctx:ctx(), emqx_exhook_pb:client_connack_request())
@@ -159,7 +159,7 @@ on_client_connect(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_connack(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_client_connected(ctx:ctx(), emqx_exhook_pb:client_connected_request())
@@ -167,7 +167,7 @@ on_client_connack(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_connected(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_client_disconnected(ctx:ctx(), emqx_exhook_pb:client_disconnected_request())
@@ -175,7 +175,7 @@ on_client_connected(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_disconnected(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_client_authenticate(ctx:ctx(), emqx_exhook_pb:client_authenticate_request())
@@ -183,7 +183,7 @@ on_client_disconnected(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_authenticate(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{type => 'IGNORE'}, Ctx}.
 
 -spec on_client_check_acl(ctx:ctx(), emqx_exhook_pb:client_check_acl_request())
@@ -191,7 +191,7 @@ on_client_authenticate(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_check_acl(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{type => 'STOP_AND_RETURN', value => {bool_result, true}}, Ctx}.
 
 -spec on_client_subscribe(ctx:ctx(), emqx_exhook_pb:client_subscribe_request())
@@ -199,7 +199,7 @@ on_client_check_acl(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_subscribe(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_client_unsubscribe(ctx:ctx(), emqx_exhook_pb:client_unsubscribe_request())
@@ -207,7 +207,7 @@ on_client_subscribe(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_client_unsubscribe(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_created(ctx:ctx(), emqx_exhook_pb:session_created_request())
@@ -215,7 +215,7 @@ on_client_unsubscribe(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_created(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_subscribed(ctx:ctx(), emqx_exhook_pb:session_subscribed_request())
@@ -223,7 +223,7 @@ on_session_created(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_subscribed(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_unsubscribed(ctx:ctx(), emqx_exhook_pb:session_unsubscribed_request())
@@ -231,7 +231,7 @@ on_session_subscribed(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_unsubscribed(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_resumed(ctx:ctx(), emqx_exhook_pb:session_resumed_request())
@@ -239,7 +239,7 @@ on_session_unsubscribed(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_resumed(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_discarded(ctx:ctx(), emqx_exhook_pb:session_discarded_request())
@@ -247,7 +247,7 @@ on_session_resumed(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_discarded(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_takeovered(ctx:ctx(), emqx_exhook_pb:session_takeovered_request())
@@ -255,7 +255,7 @@ on_session_discarded(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_takeovered(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_session_terminated(ctx:ctx(), emqx_exhook_pb:session_terminated_request())
@@ -263,7 +263,7 @@ on_session_takeovered(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_session_terminated(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_message_publish(ctx:ctx(), emqx_exhook_pb:message_publish_request())
@@ -271,7 +271,7 @@ on_session_terminated(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_message_publish(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_message_delivered(ctx:ctx(), emqx_exhook_pb:message_delivered_request())
@@ -279,7 +279,7 @@ on_message_publish(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_message_delivered(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_message_dropped(ctx:ctx(), emqx_exhook_pb:message_dropped_request())
@@ -287,7 +287,7 @@ on_message_delivered(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_message_dropped(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.
 
 -spec on_message_acked(ctx:ctx(), emqx_exhook_pb:message_acked_request())
@@ -295,5 +295,5 @@ on_message_dropped(Ctx, Req) ->
    | grpcbox_stream:grpc_error_response().
 on_message_acked(Ctx, Req) ->
     ?MODULE:in({?FUNCTION_NAME, Req}),
-    io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
+    %io:format("fun: ~p, req: ~0p~n", [?FUNCTION_NAME, Req]),
     {ok, #{}, Ctx}.

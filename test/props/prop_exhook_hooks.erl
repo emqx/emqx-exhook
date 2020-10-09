@@ -17,6 +17,7 @@
 -module(prop_exhook_hooks).
 
 -include_lib("proper/include/proper.hrl").
+-include_lib("eunit/include/eunit.hrl").
 
 -import(emqx_ct_proper_types,
         [ conninfo/0
@@ -40,25 +41,373 @@
 %%--------------------------------------------------------------------
 
 prop_client_connect() ->
-    ?ALL({ConnInfo, ConnProps, Env},
-         {conninfo(), conn_properties(), empty_env()},
+    ?ALL({ConnInfo, ConnProps},
+         {conninfo(), conn_properties()},
        begin
-           OutConnProps = emqx_hooks:run_fold('client.connect', [ConnInfo], ConnProps),
+           _OutConnProps = emqx_hooks:run_fold('client.connect', [ConnInfo], ConnProps),
            {'on_client_connect', Resp} = emqx_exhook_demo_svr:take(),
-           Resp = #{ props => properties(ConnProps),
-                     conninfo =>
-                       #{node => nodestr(),
-                         clientid => maps:get(clientid, ConnInfo),
-                         username => maps:get(username, ConnInfo, <<>>),
-                         peerhost => peerhost(ConnInfo),
-                         sockport => sockport(ConnInfo),
-                         proto_name => maps:get(proto_name, ConnInfo),
-                         proto_ver => stringfy(maps:get(proto_ver, ConnInfo)),
-                         keepalive => maps:get(keepalive, ConnInfo)
-                        }
-                   },
+           Expected =
+               #{props => properties(ConnProps),
+                 conninfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ConnInfo),
+                     username => maybe(maps:get(username, ConnInfo, <<>>)),
+                     peerhost => peerhost(ConnInfo),
+                     sockport => sockport(ConnInfo),
+                     proto_name => maps:get(proto_name, ConnInfo),
+                     proto_ver => stringfy(maps:get(proto_ver, ConnInfo)),
+                     keepalive => maps:get(keepalive, ConnInfo)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
            true
        end).
+
+prop_client_connack() ->
+    ?ALL({ConnInfo, Rc, AckProps},
+         {conninfo(), connack_return_code(), ack_properties()},
+        begin
+           _OutAckProps = emqx_hooks:run_fold('client.connack', [ConnInfo, Rc], AckProps),
+           {'on_client_connack', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{props => properties(AckProps),
+                 result_code => atom_to_binary(Rc, utf8),
+                 conninfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ConnInfo),
+                     username => maybe(maps:get(username, ConnInfo, <<>>)),
+                     peerhost => peerhost(ConnInfo),
+                     sockport => sockport(ConnInfo),
+                     proto_name => maps:get(proto_name, ConnInfo),
+                     proto_ver => stringfy(maps:get(proto_ver, ConnInfo)),
+                     keepalive => maps:get(keepalive, ConnInfo)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_client_authenticate() ->
+    ?ALL({ClientInfo, AuthResult}, {clientinfo(), authresult()},
+        begin
+           _OutAuthResult = emqx_hooks:run_fold('client.authenticate', [ClientInfo], AuthResult),
+           {'on_client_authenticate', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{result => authresult_to_bool(AuthResult),
+                 clientinfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ClientInfo),
+                     username => maybe(maps:get(username, ClientInfo, <<>>)),
+                     password => maybe(maps:get(password, ClientInfo, <<>>)),
+                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                     sockport => maps:get(sockport, ClientInfo),
+                     protocol => stringfy(maps:get(protocol, ClientInfo)),
+                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                     is_superuser => maps:get(is_superuser, ClientInfo, false),
+                     anonymous => maps:get(anonymous, ClientInfo, true)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_client_check_acl() ->
+    ?ALL({ClientInfo, PubSub, Topic, Result},
+         {clientinfo(), oneof([publish, subscribe]), topic(), oneof([allow, deny])},
+        begin
+           _OutResult = emqx_hooks:run_fold('client.check_acl', [ClientInfo, PubSub, Topic], Result),
+           {'on_client_check_acl', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{result => aclresult_to_bool(Result),
+                 type => pubsub_to_enum(PubSub),
+                 topic => Topic,
+                 clientinfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ClientInfo),
+                     username => maybe(maps:get(username, ClientInfo, <<>>)),
+                     password => maybe(maps:get(password, ClientInfo, <<>>)),
+                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                     sockport => maps:get(sockport, ClientInfo),
+                     protocol => stringfy(maps:get(protocol, ClientInfo)),
+                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                     is_superuser => maps:get(is_superuser, ClientInfo, false),
+                     anonymous => maps:get(anonymous, ClientInfo, true)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+            true
+        end).
+
+
+prop_client_connected() ->
+    ?ALL({ClientInfo, ConnInfo},
+         {clientinfo(), conninfo()},
+        begin
+           ok = emqx_hooks:run('client.connected', [ClientInfo, ConnInfo]),
+           {'on_client_connected', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{clientinfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ClientInfo),
+                     username => maybe(maps:get(username, ClientInfo, <<>>)),
+                     password => maybe(maps:get(password, ClientInfo, <<>>)),
+                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                     sockport => maps:get(sockport, ClientInfo),
+                     protocol => stringfy(maps:get(protocol, ClientInfo)),
+                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                     is_superuser => maps:get(is_superuser, ClientInfo, false),
+                     anonymous => maps:get(anonymous, ClientInfo, true)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+           true
+        end).
+
+prop_client_disconnected() ->
+    ?ALL({ClientInfo, Reason, ConnInfo},
+         {clientinfo(), shutdown_reason(), conninfo()},
+        begin
+           ok = emqx_hooks:run('client.disconnected', [ClientInfo, Reason, ConnInfo]),
+           {'on_client_disconnected', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{reason => stringfy(Reason),
+                 clientinfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ClientInfo),
+                     username => maybe(maps:get(username, ClientInfo, <<>>)),
+                     password => maybe(maps:get(password, ClientInfo, <<>>)),
+                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                     sockport => maps:get(sockport, ClientInfo),
+                     protocol => stringfy(maps:get(protocol, ClientInfo)),
+                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                     is_superuser => maps:get(is_superuser, ClientInfo, false),
+                     anonymous => maps:get(anonymous, ClientInfo, true)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+           true
+        end).
+
+prop_client_subscribe() ->
+    ?ALL({ClientInfo, SubProps, TopicTab},
+         {clientinfo(), sub_properties(), topictab()},
+        begin
+           _OutTopicTab = emqx_hooks:run_fold('client.subscribe', [ClientInfo, SubProps], TopicTab),
+           {'on_client_subscribe', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{props => properties(SubProps),
+                 topic_filters => topicfilters(TopicTab),
+                 clientinfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ClientInfo),
+                     username => maybe(maps:get(username, ClientInfo, <<>>)),
+                     password => maybe(maps:get(password, ClientInfo, <<>>)),
+                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                     sockport => maps:get(sockport, ClientInfo),
+                     protocol => stringfy(maps:get(protocol, ClientInfo)),
+                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                     is_superuser => maps:get(is_superuser, ClientInfo, false),
+                     anonymous => maps:get(anonymous, ClientInfo, true)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+           true
+        end).
+
+prop_client_unsubscribe() ->
+    ?ALL({ClientInfo, UnSubProps, TopicTab},
+         {clientinfo(), unsub_properties(), topictab()},
+        begin
+           _OutTopicTab = emqx_hooks:run_fold('client.unsubscribe', [ClientInfo, UnSubProps], TopicTab),
+           {'on_client_unsubscribe', Resp} = emqx_exhook_demo_svr:take(),
+           Expected =
+               #{props => properties(UnSubProps),
+                 topic_filters => topicfilters(TopicTab),
+                 clientinfo =>
+                   #{node => nodestr(),
+                     clientid => maps:get(clientid, ClientInfo),
+                     username => maybe(maps:get(username, ClientInfo, <<>>)),
+                     password => maybe(maps:get(password, ClientInfo, <<>>)),
+                     peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                     sockport => maps:get(sockport, ClientInfo),
+                     protocol => stringfy(maps:get(protocol, ClientInfo)),
+                     mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                     is_superuser => maps:get(is_superuser, ClientInfo, false),
+                     anonymous => maps:get(anonymous, ClientInfo, true)
+                    }
+                },
+           ?assertEqual(Expected, Resp),
+           true
+        end).
+
+prop_session_created() ->
+    ?ALL({ClientInfo, SessInfo}, {clientinfo(), sessioninfo()},
+        begin
+            ok = emqx_hooks:run('session.created', [ClientInfo, SessInfo]),
+            {'on_session_created', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+             ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_session_subscribed() ->
+    ?ALL({ClientInfo, Topic, SubOpts},
+         {clientinfo(), topic(), subopts()},
+        begin
+            ok = emqx_hooks:run('session.subscribed', [ClientInfo, Topic, SubOpts]),
+            {'on_session_subscribed', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{topic => Topic,
+                  subopts => subopts(SubOpts),
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_session_unsubscribed() ->
+    ?ALL({ClientInfo, Topic, SubOpts},
+         {clientinfo(), topic(), subopts()},
+        begin
+            ok = emqx_hooks:run('session.unsubscribed', [ClientInfo, Topic, SubOpts]),
+            {'on_session_unsubscribed', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{topic => Topic,
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_session_resumed() ->
+    ?ALL({ClientInfo, SessInfo}, {clientinfo(), sessioninfo()},
+        begin
+            ok = emqx_hooks:run('session.resumed', [ClientInfo, SessInfo]),
+            {'on_session_resumed', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_session_discared() ->
+    ?ALL({ClientInfo, SessInfo}, {clientinfo(), sessioninfo()},
+        begin
+            ok = emqx_hooks:run('session.discarded', [ClientInfo, SessInfo]),
+            {'on_session_discarded', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_session_takeovered() ->
+    ?ALL({ClientInfo, SessInfo}, {clientinfo(), sessioninfo()},
+        begin
+            ok = emqx_hooks:run('session.takeovered', [ClientInfo, SessInfo]),
+            {'on_session_takeovered', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+            true
+        end).
+
+prop_session_terminated() ->
+    ?ALL({ClientInfo, Reason, SessInfo},
+         {clientinfo(), shutdown_reason(), sessioninfo()},
+        begin
+            ok = emqx_hooks:run('session.terminated', [ClientInfo, Reason, SessInfo]),
+            {'on_session_terminated', Resp} = emqx_exhook_demo_svr:take(),
+            Expected =
+                #{reason => stringfy(Reason),
+                  clientinfo =>
+                    #{node => nodestr(),
+                      clientid => maps:get(clientid, ClientInfo),
+                      username => maybe(maps:get(username, ClientInfo, <<>>)),
+                      password => maybe(maps:get(password, ClientInfo, <<>>)),
+                      peerhost => ntoa(maps:get(peerhost, ClientInfo)),
+                      sockport => maps:get(sockport, ClientInfo),
+                      protocol => stringfy(maps:get(protocol, ClientInfo)),
+                      mountpoint => maybe(maps:get(mountpoint, ClientInfo, <<>>)),
+                      is_superuser => maps:get(is_superuser, ClientInfo, false),
+                      anonymous => maps:get(anonymous, ClientInfo, true)
+                     }
+                 },
+            ?assertEqual(Expected, Resp),
+
+            true
+        end).
 
 nodestr() ->
     stringfy(node()).
@@ -76,12 +425,18 @@ ntoa({0,0,0,0,0,16#ffff,AB,CD}) ->
 ntoa(IP) ->
     list_to_binary(inet_parse:ntoa(IP)).
 
+maybe(undefined) -> <<>>;
+maybe(B) -> B.
+
 properties(undefined) -> [];
 properties(M) when is_map(M) ->
     maps:fold(fun(K, V, Acc) ->
         [#{name => stringfy(K),
            value => stringfy(V)} | Acc]
     end, [], M).
+
+topicfilters(Tfs) when is_list(Tfs) ->
+    [#{name => Topic, qos => Qos} || {Topic, #{qos := Qos}} <- Tfs].
 
 %% @private
 stringfy(Term) when is_binary(Term) ->
@@ -90,65 +445,26 @@ stringfy(Term) when is_integer(Term) ->
     integer_to_binary(Term);
 stringfy(Term) when is_atom(Term) ->
     atom_to_binary(Term, utf8);
-stringfy(Term) when is_tuple(Term) ->
-    iolist_to_binary(io_lib:format("~p", [Term])).
+stringfy(Term) ->
+    unicode:characters_to_binary((io_lib:format("~0p", [Term]))).
 
-%prop_client_connack() ->
-%    ?ALL({ConnInfo, Rc, AckProps, Env},
-%         {conninfo(), connack_return_code(), ack_properties(), empty_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_client_connected() ->
-%    ?ALL({ClientInfo, ConnInfo, Env},
-%         {clientinfo(), conninfo(), empty_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_client_disconnected() ->
-%    ?ALL({ClientInfo, Reason, ConnInfo, Env},
-%         {clientinfo(), shutdown_reason(), conninfo(), empty_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_client_subscribe() ->
-%    ?ALL({ClientInfo, SubProps, TopicTab, Env},
-%         {clientinfo(), sub_properties(), topictab(), topic_filter_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_client_unsubscribe() ->
-%    ?ALL({ClientInfo, SubProps, TopicTab, Env},
-%         {clientinfo(), unsub_properties(), topictab(), topic_filter_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_session_subscribed() ->
-%    ?ALL({ClientInfo, Topic, SubOpts, Env},
-%         {clientinfo(), topic(), subopts(), topic_filter_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_session_unsubscribed() ->
-%    ?ALL({ClientInfo, Topic, SubOpts, Env},
-%         {clientinfo(), topic(), subopts(), empty_env()},
-%        begin
-%            true
-%        end).
-%
-%prop_session_terminated() ->
-%    ?ALL({ClientInfo, Reason, SessInfo, Env},
-%         {clientinfo(), shutdown_reason(), sessioninfo(), empty_env()},
-%        begin
-%            true
-%        end).
-%
+subopts(SubOpts) ->
+    #{qos => maps:get(qos, SubOpts, 0),
+      rh => maps:get(rh, SubOpts, 0),
+      rap => maps:get(rap, SubOpts, 0),
+      nl => maps:get(nl, SubOpts, 0),
+      share => maps:get(share, SubOpts, <<>>)
+     }.
+
+authresult_to_bool(AuthResult) ->
+    maps:get(auth_result, AuthResult, undefined) == success.
+
+aclresult_to_bool(Result) ->
+    Result == allow.
+
+pubsub_to_enum(publish) -> 'PUBLISH';
+pubsub_to_enum(subscribe) -> 'SUBSCRIBE'.
+
 %prop_message_publish() ->
 %    ?ALL({Msg, Env, Encode}, {message(), topic_filter_env()},
 %        begin
@@ -162,7 +478,7 @@ stringfy(Term) when is_tuple(Term) ->
 %        end).
 %
 %prop_message_acked() ->
-%    ?ALL({ClientInfo, Msg, Env, Encode}, {clientinfo(), message(), empty_env()},
+%    ?ALL({ClientInfo, Msg, Env, Encode}, {clientinfo(), message()},
 %        begin
 %            true
 %        end).
@@ -171,7 +487,6 @@ stringfy(Term) when is_tuple(Term) ->
 %% Helper
 %%--------------------------------------------------------------------
 do_setup() ->
-    emqx_logger:set_log_level(debug),
     _ = emqx_exhook_demo_svr:start(),
     emqx_ct_helpers:start_apps([emqx_exhook], fun set_special_cfgs/1),
     %% waiting first loaded event
@@ -182,7 +497,8 @@ do_teardown(_) ->
     emqx_ct_helpers:stop_apps([emqx_exhook]),
     %% waiting last unloaded event
     {'on_provider_unloaded', _} = emqx_exhook_demo_svr:take(),
-    _ = emqx_exhook_demo_svr:stop().
+    _ = emqx_exhook_demo_svr:stop(),
+    ok.
 
 set_special_cfgs(emqx) ->
     application:set_env(emqx, allow_anonymous, false),
@@ -191,9 +507,6 @@ set_special_cfgs(emqx) ->
                         emqx_ct_helpers:deps_path(emqx, "test/emqx_SUITE_data/loaded_plugins"));
 set_special_cfgs(emqx_exhook) ->
     ok.
-
-ensure_to_binary(Atom) when is_atom(Atom) -> atom_to_binary(Atom, utf8);
-ensure_to_binary(Bin) when is_binary(Bin) -> Bin.
 
 %%--------------------------------------------------------------------
 %% Generators
@@ -212,10 +525,10 @@ unsub_properties() ->
     #{}.
 
 shutdown_reason() ->
-    oneof([any(), {shutdown, atom()}]).
+    oneof([utf8(), {shutdown, atom()}]).
 
-empty_env() ->
-    {undefined}.
+authresult() ->
+    #{auth_result => connack_return_code()}.
 
-topic_filter_env() ->
-    oneof([{<<"#">>}, {undefined}, {topic()}]).
+%topic_filter_env() ->
+%    oneof([{<<"#">>}, {undefined}, {topic()}]).
