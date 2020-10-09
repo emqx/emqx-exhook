@@ -23,7 +23,7 @@
 cli(["server", "list"]) ->
     if_enabled(fun() ->
         Services = emqx_exhook:list(),
-        [emqx_ctl:print("Service(~s)~n", [emqx_exhook_server:format(Service)]) || Service <- Services]
+        [emqx_ctl:print("HookServer(~s)~n", [emqx_exhook_server:format(Service)]) || Service <- Services]
     end);
 
 cli(["server", "enable", Name0]) ->
@@ -48,10 +48,10 @@ cli(["server", "stats"]) ->
     end);
 
 cli(_) ->
-    emqx_ctl:usage([{"exhook server list", "List all running server"},
-                    {"exhook server enable <Name>", "Enable a server with configurations"},
-                    {"exhook server disable <Name>", "Disable a server"},
-                    {"exhook server stats", "Print server statistic"}]).
+    emqx_ctl:usage([{"exhook server list", "List all running exhook server"},
+                    {"exhook server enable <Name>", "Enable a exhook server in the configuration"},
+                    {"exhook server disable <Name>", "Disable a exhook server"},
+                    {"exhook server stats", "Print exhook server statistic"}]).
 
 print(ok) ->
     emqx_ctl:print("ok~n");
