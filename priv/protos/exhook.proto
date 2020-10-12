@@ -123,9 +123,9 @@ message ClientCheckAclRequest {
 
   enum AclReqType {
 
-    PUBLISH = 1;
+    PUBLISH = 0;
 
-    SUBSCRIBE = 2;
+    SUBSCRIBE = 1;
   }
 
   AclReqType type = 2;
@@ -236,11 +236,11 @@ message ValuedResponse {
   //  - stop_and_return: Use the responsed value and stop the chain executing
   enum ResponsedType {
 
-    IGNORE = 1;
+    IGNORE = 0;
 
-    CONTINUE = 2;
+    CONTINUE = 1;
 
-    STOP_AND_RETURN = 3;
+    STOP_AND_RETURN = 2;
   }
 
   ResponsedType type = 1;
@@ -368,7 +368,7 @@ message SubOpts {
   uint32 qos = 1;
 
   // The group name for shared subscription
-  optional string share = 2;
+  string share = 2;
 
   // The Retain Handling option (MQTT v5.0)
   //
@@ -376,7 +376,7 @@ message SubOpts {
   //  1 = Send retained messages at subscribe only if the subscription does
   //       not currently exist
   //  2 = Do not send retained messages at the time of the subscribe
-  optional uint32 rh = 3;
+  uint32 rh = 3;
 
   // The Retain as Published option (MQTT v5.0)
   //
@@ -385,11 +385,11 @@ message SubOpts {
   //  If 0, Application Messages forwarded using this subscription have the
   //        RETAIN flag set to 0.
   // Retained messages sent when the subscription is established have the RETAIN flag set to 1.
-  optional uint32 rap = 4;
+  uint32 rap = 4;
 
   // The No Local option (MQTT v5.0)
   //
   // If the value is 1, Application Messages MUST NOT be forwarded to a
   // connection with a ClientID equal to the ClientID of the publishing
-  optional uint32 nl = 5;
+  uint32 nl = 5;
 }
