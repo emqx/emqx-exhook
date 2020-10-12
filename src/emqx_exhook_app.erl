@@ -20,7 +20,7 @@
 
 -include("emqx_exhook.hrl").
 
--emqx_plugin(?MODULE).
+-emqx_plugin(extension).
 
 -export([ start/2
         , stop/1
