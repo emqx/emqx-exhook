@@ -42,6 +42,12 @@
         , on_session_terminated/3
         ]).
 
+-export([ on_message_publish/1
+        , on_message_dropped/3
+        , on_message_delivered/2
+        , on_message_acked/2
+]).
+
 %% Utils
 -export([ message/1
         , validator/1
@@ -70,7 +76,11 @@
          , {'session.discarded',   {?MODULE, on_session_discarded,    []}}
          , {'session.takeovered',  {?MODULE, on_session_takeovered,   []}}
          , {'session.terminated',  {?MODULE, on_session_terminated,   []}}
-         ]).
+         , {'message.publish',     {?MODULE, on_message_publish,      []}}
+         , {'message.dropped',     {?MODULE, on_message_dropped,      []}}
+         , {'message.delivered',   {?MODULE, on_message_delivered,    []}}
+         , {'message.acked',       {?MODULE, on_message_acked,        []}}
+]).
 
 %%--------------------------------------------------------------------
 %% Clients
@@ -141,6 +151,21 @@ on_session_takeovered(ClientInfo, _SessInfo) ->
 
 on_session_terminated(ClientInfo, Reason, _SessInfo) ->
     cast('session_terminated', [clientinfo(ClientInfo), stringfy(Reason)]).
+
+%%--------------------------------------------------------------------
+%% Messages
+
+on_message_publish(Message) ->
+    cast('message_publish', [message(Message)]).
+
+on_message_dropped(Message, By, Reason) ->
+    cast('message_dropped', [message(Message), props(By), stringfy(Reason)]).
+
+on_message_delivered(ClientInfo, Message) ->
+    cast('message_delivered', [clientinfo(ClientInfo), message(Message)]).
+
+on_message_acked(ClientInfo, Message) ->
+    cast('message_acked', [clientinfo(ClientInfo), message(Message)]).
 
 %%--------------------------------------------------------------------
 %% Types

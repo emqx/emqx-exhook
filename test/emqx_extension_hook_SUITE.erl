@@ -22,6 +22,17 @@
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("common_test/include/ct.hrl").
 
+-record(message, {
+    id :: binary(),
+    qos = 0,
+    from :: atom() | binary(),
+    flags = #{} :: emqx_types:flags(),
+    headers = #{} :: emqx_types:headers(),
+    topic :: emqx_types:topic(),
+    payload :: emqx_types:payload(),
+    timestamp :: integer()
+}).
+
 %%--------------------------------------------------------------------
 %% Setups
 %%--------------------------------------------------------------------
@@ -100,11 +111,25 @@ schedule_all_hooks() ->
     ok = emqx_extension_hook_handler:on_session_resumed(clientinfo(), sessinfo()),
     ok = emqx_extension_hook_handler:on_session_discarded(clientinfo(), sessinfo()),
     ok = emqx_extension_hook_handler:on_session_takeovered(clientinfo(), sessinfo()),
-    ok = emqx_extension_hook_handler:on_session_terminated(clientinfo(), sockerr, sessinfo()).
+    ok = emqx_extension_hook_handler:on_session_terminated(clientinfo(), sockerr, sessinfo()),
+
+    ok = emqx_extension_hook_handler:on_message_publish(message()),
+    ok = emqx_extension_hook_handler:on_message_dropped(message(), #{}, no_subscribers),
+    ok = emqx_extension_hook_handler:on_message_delivered(clientinfo(), message()),
+    ok = emqx_extension_hook_handler:on_message_delivered(clientinfo(), message()).
+
 
 %%--------------------------------------------------------------------
 %% Generator
 %%--------------------------------------------------------------------
+
+message() ->
+    #message{id = <<"123">>,
+             qos = 0,
+             from = <<"client0">>,
+             topic = <<"t/a">>,
+             payload = <<"payload0">>,
+             timestamp = 100}.
 
 conninfo() ->
     #{clientid => <<"123">>,
