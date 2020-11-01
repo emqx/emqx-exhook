@@ -118,12 +118,20 @@ def on_session_terminated(clientinfo, reason, state):
 ## Messages
 
 def on_message_publish(message, state):
-    print("on_message_publish: message: {0}, state: {1}".format(message, state))
-    return message
+    topic = list(filter(lambda x: x[0] == b'topic', message))[0][1]
+    if topic[0:4] == b'$SYS':
+        return
+    else:
+        print("on_message_publish: message: {0}, state: {1}".format(message, state))
+        return (OK, message)
 
-def on_message_dropped(message, reason, state):
-    print("on_message_dropped: message: {0}, reason: {1}, state: {2}".format(message, reason, state))
-    return
+def on_message_dropped(message, _by, reason, state):
+    topic = list(filter(lambda x: x[0] == b'topic', message))[0][1]
+    if topic[0:4] == b'$SYS':
+        return
+    else:
+        print("on_message_dropped: message: {0}, reason: {1}, state: {2}".format(message, reason, state))
+        return
 
 def on_message_delivered(clientinfo, message, state):
     print("on_message_delivered: clientinfo: {0}, message: {1}, state: {2}".format(clientinfo, message, state))
