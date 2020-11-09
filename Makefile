@@ -14,10 +14,10 @@ clean: distclean
 proper:
 	$(REBAR) proper -d test/props
 
-ct: compile
+ct:
 	$(REBAR) as test ct -v --name emqx_exhook_ct@127.0.0.1
 
-eunit: compile
+eunit:
 	$(REBAR) as test eunit
 
 xref:
