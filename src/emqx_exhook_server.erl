@@ -48,7 +48,7 @@
           incfun :: function()
        }).
 
--type server_name() :: atom().
+-type server_name() :: string().
 -type server() :: #server{}.
 
 -type hookpoint() :: 'client.connect'
@@ -78,49 +78,54 @@
 %%--------------------------------------------------------------------
 
 -spec load(atom(), list()) -> {ok, server()} | {error, term()} .
-load(Name, Opts0) ->
-    {Endpoints, Options} = channel_opts(Opts0),
-    StartFun = case proplists:get_bool(inplace, Opts0) of
-                   true -> start_grpc_client_channel_inplace;
-                   _ -> start_grpc_client_channel
-               end,
-    case emqx_exhook_sup:StartFun(Name, Endpoints, Options) of
-        {ok, ChannPid} ->
+load(Name0, Opts0) ->
+    Name = prefix(Name0),
+    {SvrAddr, ClientOpts} = channel_opts(Opts0),
+    case emqx_exhook_sup:start_grpc_client_channel(Name, SvrAddr, ClientOpts) of
+        {ok, _ChannPoolPid} ->
             case do_init(Name) of
                 {ok, HookSpecs} ->
                     %% Reigster metrics
                     Prefix = lists:flatten(io_lib:format("exhook.~s.", [Name])),
                     ensure_metrics(Prefix, HookSpecs),
                     {ok, #server{name = Name,
-                                  options = Opts0,
-                                  channel = ChannPid,
-                                  hookspec = HookSpecs,
-                                  incfun = incfun(Prefix) }};
+                                 options = Opts0,
+                                 channel = _ChannPoolPid,
+                                 hookspec = HookSpecs,
+                                 incfun = incfun(Prefix) }};
                 {error, _} = E -> E
             end;
         {error, _} = E -> E
     end.
 
 %% @private
+prefix(Name) when is_atom(Name) ->
+    "exhook:" ++ atom_to_list(Name);
+prefix(Name) when is_binary(Name) ->
+    "exhook:" ++ binary_to_list(Name);
+prefix(Name) when is_list(Name) ->
+    "exhook:" ++ Name.
+
+%% @private
 channel_opts(Opts) ->
     Scheme = proplists:get_value(scheme, Opts),
     Host = proplists:get_value(host, Opts),
     Port = proplists:get_value(port, Opts),
-    Options = proplists:get_value(options, Opts, []),
-    SslOpts = case Scheme of
-                  https -> proplists:get_value(ssl_options, Opts, []);
-                  _ -> []
-              end,
-    {[{Scheme, Host, Port, SslOpts}], maps:from_list(Options)}.
+    SvrAddr = lists:flatten(io_lib:format("~s://~s:~w", [Scheme, Host, Port])),
+    ClientOpts = case Scheme of
+                     https ->
+                         SslOpts = lists:keydelete(ssl, 1, proplists:get_value(ssl_options, Opts, [])),
+                         #{gun_opts =>
+                           #{transport => ssl,
+                             transport_opts => SslOpts}};
+                     _ -> #{}
+                 end,
+    {SvrAddr, ClientOpts}.
 
 -spec unload(server()) -> ok.
-unload(#server{name = Name, channel = ChannPid, options = Options}) ->
+unload(#server{name = Name}) ->
     _ = do_deinit(Name),
-    {StopFun, Args} = case proplists:get_bool(inplace, Options) of
-                          true -> {stop_grpc_client_channel_inplace, [ChannPid]};
-                          _ -> {stop_grpc_client_channel, [Name]}
-                      end,
-    apply(emqx_exhook_sup, StopFun, Args).
+    _ = emqx_exhook_sup:stop_grpc_client_channel(Name).
 
 do_deinit(Name) ->
     _ = do_call(Name, 'on_provider_unloaded', #{}),
@@ -212,7 +217,7 @@ match_topic_filter(_, []) ->
 match_topic_filter(TopicName, TopicFilter) ->
     lists:any(fun(F) -> emqx_topic:match(TopicName, F) end, TopicFilter).
 
--spec do_call(atom(), atom(), map()) -> {ok, map()} | {error, term()}.
+-spec do_call(string(), atom(), map()) -> {ok, map()} | {error, term()}.
 do_call(ChannName, Fun, Req) ->
     Options = #{channel => ChannName},
     ?LOG(debug, "Call ~0p:~0p(~0p, ~0p)", [?PB_CLIENT_MOD, Fun, Req, Options]),
