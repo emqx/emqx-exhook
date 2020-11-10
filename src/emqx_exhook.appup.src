@@ -2,15 +2,15 @@
 {"4.2.1",
   [
     {"e4.2.0", [
-      {remove_application, grpcbox},
-      {add_application, grpc},
+      %{remove_application, grpcbox},
+      %{add_application, grpc},
       {restart_application, emqx_exhook}
     ]}
   ],
   [
     {"e4.2.0", [
-      {remove_application, grpc},
-      {add_application, grpcbox},
+      %{remove_application, grpc},
+      %{add_application, grpcbox},
       {restart_application, emqx_exhook}
     ]}
   ]
