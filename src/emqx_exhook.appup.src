@@ -1,5 +1,5 @@
 %% -*-: erlang -*-
-{"4.2.1",
+{"e4.2.1",
   [
     {"e4.2.0", [
       %{remove_application, grpcbox},
