@@ -36,7 +36,7 @@
         ]).
 
 -record(server, {
-          %% Server name (equal to grpcbox client channel name)
+          %% Server name (equal to grpc client channel name)
           name :: server_name(),
           %% The server started options
           options :: list(),
@@ -93,7 +93,8 @@ load(Name0, Opts0) ->
                                  channel = _ChannPoolPid,
                                  hookspec = HookSpecs,
                                  incfun = incfun(Prefix) }};
-                {error, _} = E -> E
+                {error, _} = E ->
+                    emqx_exhook_sup:stop_grpc_client_channel(Name), E
             end;
         {error, _} = E -> E
     end.
@@ -233,8 +234,8 @@ do_call(ChannName, Fun, Req) ->
             ?LOG(error, "CALL ~0p:~0p(~0p, ~0p) error: ~0p",
                         [?PB_CLIENT_MOD, Fun, Req, Options, Reason]),
             {error, Reason};
-        {'EXIT', Reason, Stk} ->
-            ?LOG(error, "CALL ~0p:~0p(~0p, ~0p) throw an exception: ~0p, stacktrace: ~p",
+        {'EXIT', {Reason, Stk}} ->
+            ?LOG(error, "CALL ~0p:~0p(~0p, ~0p) throw an exception: ~0p, stacktrace: ~0p",
                         [?PB_CLIENT_MOD, Fun, Req, Options, Reason, Stk]),
             {error, Reason}
     end.
