@@ -4,14 +4,16 @@
     {"e4.2.0", [
       %{remove_application, grpcbox},
       %{add_application, grpc},
-      {restart_application, emqx_exhook}
+      {restart_application, emqx_exhook},
+      {apply, {emqx_plugins, load, []}}
     ]}
   ],
   [
     {"e4.2.0", [
       %{remove_application, grpc},
       %{add_application, grpcbox},
-      {restart_application, emqx_exhook}
+      {restart_application, emqx_exhook},
+      {apply, {emqx_plugins, load, []}}
     ]}
   ]
 }.
