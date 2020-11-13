@@ -49,4 +49,11 @@ start_grpc_client_channel(Name, SvrAddr, Options) ->
 
 -spec stop_grpc_client_channel(string()) -> ok.
 stop_grpc_client_channel(Name) ->
-    grpc_client_sup:stop_channel_pool(Name).
+    %% Avoid crash due to hot-upgrade had unloaded
+    %% grpc application
+    try
+        grpc_client_sup:stop_channel_pool(Name)
+    catch
+        _:_:_ ->
+            ok
+    end.
