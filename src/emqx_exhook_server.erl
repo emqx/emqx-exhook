@@ -126,7 +126,8 @@ channel_opts(Opts) ->
 -spec unload(server()) -> ok.
 unload(#server{name = Name}) ->
     _ = do_deinit(Name),
-    _ = emqx_exhook_sup:stop_grpc_client_channel(Name).
+    _ = emqx_exhook_sup:stop_grpc_client_channel(Name),
+    ok.
 
 do_deinit(Name) ->
     _ = do_call(Name, 'on_provider_unloaded', #{}),
