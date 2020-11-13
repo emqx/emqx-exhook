@@ -500,7 +500,7 @@ do_teardown(_) ->
     %% waiting last unloaded event
     {'on_provider_unloaded', _} = emqx_exhook_demo_svr:take(),
     _ = emqx_exhook_demo_svr:stop(),
-    %timer:sleep(1000),
+    timer:sleep(2000),
     ok.
 
 set_special_cfgs(emqx) ->
