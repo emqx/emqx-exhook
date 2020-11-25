@@ -1,17 +1,15 @@
 %% -*-: erlang -*-
-{"e4.2.1",
+{"e4.2.2",
   [
+    {"e4.2.1", []},
     {"e4.2.0", [
-      {restart_application, emqx_exhook},
-      {apply, {emqx_plugins, load, []}},
-      {apply, {emqx_modules, refresh_module, [exhook]}}
-
+      {restart_application, emqx_exproto}
     ]}
   ],
   [
+    {"e4.2.1", []},
     {"e4.2.0", [
-      {restart_application, emqx_exhook},
-      {apply, {emqx_plugins, load, []}}
+      {restart_application, emqx_exproto}
     ]}
   ]
 }.
