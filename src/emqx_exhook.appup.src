@@ -1,15 +1,15 @@
 %% -*-: erlang -*-
-{"e4.2.2",
+{VSN,
   [
-    {"e4.2.1", []},
     {"e4.2.0", [
       {restart_application, emqx_exproto}
-    ]}
+    ]},
+    {<<".*">>, []}
   ],
   [
-    {"e4.2.1", []},
     {"e4.2.0", [
       {restart_application, emqx_exproto}
-    ]}
+    ]},
+    {<<".*">>, []}
   ]
 }.
