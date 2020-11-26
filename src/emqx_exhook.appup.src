@@ -1,5 +1,5 @@
 %% -*-: erlang -*-
-{VSN,
+{"e4.2.2",
   [
     {"e4.2.0", [
       {restart_application, emqx_exproto}
