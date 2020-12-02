@@ -44,8 +44,8 @@
           channel :: pid(),
           %% Registered hook names and options
           hookspec :: #{hookpoint() => map()},
-          %% Metric fun
-          incfun :: function()
+          %% Metrcis name prefix
+          prefix :: list()
        }).
 
 -type server_name() :: string().
@@ -73,6 +73,8 @@
 
 -export_type([server/0]).
 
+-dialyzer({nowarn_function, [inc_metrics/2]}).
+
 %%--------------------------------------------------------------------
 %% Load/Unload APIs
 %%--------------------------------------------------------------------
@@ -92,7 +94,7 @@ load(Name0, Opts0) ->
                                  options = Opts0,
                                  channel = _ChannPoolPid,
                                  hookspec = HookSpecs,
-                                 incfun = incfun(Prefix) }};
+                                 prefix = Prefix }};
                 {error, _} = E ->
                     emqx_exhook_sup:stop_grpc_client_channel(Name), E
             end;
@@ -175,11 +177,6 @@ ensure_metrics(Prefix, HookSpecs) ->
             || Hookpoint <- maps:keys(HookSpecs)],
     lists:foreach(fun emqx_metrics:ensure/1, Keys).
 
-incfun(Prefix) ->
-    fun(Name) ->
-        emqx_metrics:inc(list_to_atom(Prefix ++ atom_to_list(Name)))
-    end.
-
 format(#server{name = Name, hookspec = Hooks}) ->
     io_lib:format("name=~p, hooks=~0p", [Name, Hooks]).
 
@@ -194,7 +191,7 @@ name(#server{name = Name}) ->
   -> ignore
    | {ok, Resp :: term()}
    | {error, term()}.
-call(Hookpoint, Req, #server{name = ChannName, hookspec = Hooks, incfun = IncFun}) ->
+call(Hookpoint, Req, #server{name = ChannName, hookspec = Hooks, prefix = Prefix}) ->
     GrpcFunc = hk2func(Hookpoint),
     case maps:get(Hookpoint, Hooks, undefined) of
         undefined -> ignore;
@@ -208,10 +205,18 @@ call(Hookpoint, Req, #server{name = ChannName, hookspec = Hooks, incfun = IncFun
             case NeedCall of
                 false -> ignore;
                 _ ->
-                    IncFun(Hookpoint),
+                    inc_metrics(Prefix, Hookpoint),
                     do_call(ChannName, GrpcFunc, Req)
             end
     end.
+
+%% @private
+inc_metrics(IncFun, Name) when is_function(IncFun) ->
+    %% BACKW: e4.2.0-e4.2.2
+    {env, [Prefix|_]} = erlang:fun_info(IncFun, env),
+    inc_metrics(Prefix, Name);
+inc_metrics(Prefix, Name) when is_list(Prefix) ->
+    emqx_metrics:inc(list_to_atom(Prefix ++ atom_to_list(Name))).
 
 -compile({inline, [match_topic_filter/2]}).
 match_topic_filter(_, []) ->
