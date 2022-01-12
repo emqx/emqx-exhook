@@ -9,6 +9,6 @@
   {licenses, ["Apache-2.0"]},
   {maintainers, ["EMQ X Team <contact@emqx.io>"]},
   {links, [{"Homepage", "https://emqx.io/"},
-           {"Github", "https://github.com/emqx/emqx-extension-hook"}
+           {"Github", "https://github.com/xiongzhenhai-zh/emqx-exhook"}
           ]}
  ]}.
